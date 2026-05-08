@@ -4,7 +4,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import json
-import geopandas as gpd
 from statsmodels.tsa.seasonal import STL
 from statsmodels.tsa.stattools import acf, pacf
 from pathlib import Path
@@ -87,7 +86,7 @@ st.markdown("""
 BASE_DIR = Path("data/analytical")
 PANEL_FILE = BASE_DIR / "panel_dpto_año.parquet"
 MICRO_FILE = BASE_DIR / "mortalidad_raw_slim.parquet"
-SHAPE_FILE = Path("data/Mapa/MGN_ANM_DPTOS.shp")
+GEOJSON_FILE = Path("data/processed/colombia.geo.json")
 
 @st.cache_data
 def load_panel_data(file_path, file_mtime):
@@ -106,18 +105,12 @@ def load_micro_data(file_path, file_mtime):
     return pd.DataFrame()
 
 @st.cache_data
-def load_geojson_from_shapefile(file_path, file_mtime, simplify_tolerance=0.01):
-    """Convierte un shapefile a GeoJSON para graficos coropleticos."""
+def load_geojson(file_path):
+    """Carga el JSON / GeoJSON / TopoJSON."""
     if not file_path.exists():
         return None
-    gdf = gpd.read_file(file_path)
-    if gdf.crs is not None:
-        gdf = gdf.to_crs(epsg=4326)
-    gdf['geometry'] = gdf['geometry'].simplify(simplify_tolerance, preserve_topology=True)
-    gdf['DPTO_CCDGO'] = pd.to_numeric(gdf['DPTO_CCDGO'], errors='coerce')
-    gdf = gdf.dropna(subset=['DPTO_CCDGO'])
-    gdf['DPTO_CCDGO'] = gdf['DPTO_CCDGO'].astype(int)
-    return json.loads(gdf.to_json())
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 # ==============================================================================
@@ -480,6 +473,8 @@ def render_analisis_geografico(df_panel):
         return
 
     # PASO 1: PREPARACION DE DATOS (PROMEDIO 2008-2024)
+    # Convertimos a string el codigo del dpto y le agregamos un 0 a la izq para emparejar con el JSON
+    df_panel['cod_dpto'] = df_panel['cod_dpto'].astype(str).str.zfill(2)
     df_geo = (
         df_panel.groupby(['cod_dpto', 'departamento'])['tasa_ajustada_edad']
         .mean()
@@ -502,11 +497,10 @@ def render_analisis_geografico(df_panel):
         st.markdown("<h4 style='text-align: center; margin-bottom: 0;'>Mapa coroplético — TAE por departamento</h4>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #5B7C8E; font-size: 0.85em;'>Tasa ajustada por edad (método directo, pop. estándar OMS)</p>", unsafe_allow_html=True)
 
-        shape_mtime = SHAPE_FILE.stat().st_mtime if SHAPE_FILE.exists() else 0
-        geojson_col = load_geojson_from_shapefile(SHAPE_FILE, shape_mtime, simplify_tolerance=0.02)
+        geojson_col = load_geojson(GEOJSON_FILE)
 
         if geojson_col is None:
-            st.info("Shapefile no encontrado. Agrega Datos/Mapa/MGN_ANM_DPTOS.shp para habilitar el mapa.")
+            st.info("Archivo JSON no encontrado. Asegúrate de tener data/processed/colombia.geo.json")
         else:
             col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([1, 2, 1])
             with col_ctrl2:
@@ -526,7 +520,7 @@ def render_analisis_geografico(df_panel):
                     hover_name='departamento',
                     hover_data={'cod_dpto': False, 'tasa_ajustada_edad': ':.2f', 'año': True},
                     color_continuous_scale=earth_colorscale,
-                    featureidkey="properties.DPTO_CCDGO",
+                    featureidkey="properties.DPTO",
                     animation_frame='año',
                     template="plotly_white"
                 )
@@ -534,7 +528,7 @@ def render_analisis_geografico(df_panel):
                 fig_map.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 0
                 fig_map.layout.updatemenus[0].buttons[0].args[1]["fromcurrent"] = True
             else:
-                df_geo_filtered = df_geo_year[df_geo_year['año'] == year_selected]
+                df_geo_filtered = df_geo_year[df_geo_year['año'] == year_selected].copy()
                 fig_map = px.choropleth(
                     df_geo_filtered,
                     geojson=geojson_col,
@@ -543,7 +537,7 @@ def render_analisis_geografico(df_panel):
                     hover_name='departamento',
                     hover_data={'cod_dpto': False, 'tasa_ajustada_edad': ':.2f', 'año': False},
                     color_continuous_scale=earth_colorscale,
-                    featureidkey="properties.DPTO_CCDGO",
+                    featureidkey="properties.DPTO",
                     template="plotly_white"
                 )
             fig_map.update_geos(fitbounds="locations", visible=False, bgcolor="#F5F2E9") # Fondo del mapa igual al background
