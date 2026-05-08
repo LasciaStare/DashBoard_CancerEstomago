@@ -84,10 +84,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Rutas a los datos procesados
-BASE_DIR = Path("proyecto/data/analytical")
+BASE_DIR = Path("data/analytical")
 PANEL_FILE = BASE_DIR / "panel_dpto_año.parquet"
 MICRO_FILE = BASE_DIR / "mortalidad_raw_slim.parquet"
-SHAPE_FILE = Path("Datos/Mapa/MGN_ANM_DPTOS.shp")
+SHAPE_FILE = Path("data/Mapa/MGN_ANM_DPTOS.shp")
 
 @st.cache_data
 def load_panel_data(file_path, file_mtime):
@@ -214,7 +214,7 @@ def render_resumen_ejecutivo(df_panel, df_micro):
                             font=dict(family="sans-serif", color="#A64D32"),
                             yshift=10, ay=-40)
         
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, width='stretch')
 
     with col_chart2:
         st.markdown("<h4 style='text-align: center; margin-top: 20px; font-family: Playfair Display, Georgia, serif;'>Pirámide de Población</h4>", unsafe_allow_html=True)
@@ -292,7 +292,7 @@ def render_resumen_ejecutivo(df_panel, df_micro):
             margin=dict(l=0, r=0, t=10, b=0)
         )
         
-        st.plotly_chart(fig_pyr, use_container_width=True)
+        st.plotly_chart(fig_pyr, width='stretch')
 
 
     # --- Evolución de la Tasa Ajustada por Departamento ---
@@ -335,7 +335,7 @@ def render_resumen_ejecutivo(df_panel, df_micro):
             height=350,
             margin=dict(l=0, r=0, t=10, b=0)
         )
-        st.plotly_chart(fig_tasa, use_container_width=True)
+        st.plotly_chart(fig_tasa, width='stretch')
 
     with col_top:
         st.markdown("<p style='text-align: center; color: #5B7C8E; font-size: 0.9em; font-weight: bold; margin-bottom: 2px;'>Top 5 Mayor Tasa Cruda Promedio</p>", unsafe_allow_html=True)
@@ -364,7 +364,7 @@ def render_resumen_ejecutivo(df_panel, df_micro):
             height=350,
             margin=dict(l=0, r=0, t=20, b=0)
         )
-        st.plotly_chart(fig_top5, use_container_width=True)
+        st.plotly_chart(fig_top5, width='stretch')
 
 # ==============================================================================
 # FUNCIONES DUMMY PARA LAS OTRA PESTAÑAS
@@ -422,7 +422,7 @@ def render_analisis_temporal(df_micro):
         )
         fig_stl.update_xaxes(showticklabels=False, showgrid=True, gridcolor='#D1CDC0', zeroline=False)
         fig_stl.update_yaxes(showticklabels=False, showgrid=True, gridcolor='#D1CDC0', zeroline=False)
-        st.plotly_chart(fig_stl, use_container_width=True)
+        st.plotly_chart(fig_stl, width='stretch')
 
     # PASO 4: TESTS DE ESTACIONARIEDAD (ARRIBA DERECHA)
     with col_tr:
@@ -562,7 +562,7 @@ def render_analisis_geografico(df_panel):
             # Forzamos colocarlo en la columna del centro para que esté centrado globalmente
             map_col1, map_col2, map_col3 = st.columns([1, 6, 1])
             with map_col2:
-                st.plotly_chart(fig_map, use_container_width=True)
+                st.plotly_chart(fig_map, width='stretch')
 
     st.markdown("<hr style='margin: 40px 0; border-color: #D1CDC0;'>", unsafe_allow_html=True)
 
@@ -592,7 +592,7 @@ def render_analisis_geografico(df_panel):
             margin=dict(l=10, r=10, t=10, b=10)
         )
         fig_top.update_yaxes(showticklabels=False)
-        st.plotly_chart(fig_top, use_container_width=True)
+        st.plotly_chart(fig_top, width='stretch')
 def render_perfil_sociodemografico(df_micro):
     if df_micro.empty:
         st.warning("Faltan datos para mostrar el perfil sociodemográfico.")
@@ -625,7 +625,7 @@ def render_perfil_sociodemografico(df_micro):
                 yaxis=dict(showgrid=True, gridcolor='#D1CDC0', zeroline=False),
                 height=300, margin=dict(l=0, r=0, t=10, b=0)
             )
-            st.plotly_chart(fig1, use_container_width=True)
+            st.plotly_chart(fig1, width='stretch')
         else:
             st.info("Variable Regimen_Salud no disponible.")
 
@@ -649,7 +649,7 @@ def render_perfil_sociodemografico(df_micro):
                 xaxis=dict(title="", showgrid=True, gridcolor='#D1CDC0', zeroline=False),
                 height=300, margin=dict(l=0, r=0, t=10, b=0)
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width='stretch')
         else:
             st.info("Variable Nivel_Educativo no disponible.")
 
@@ -674,7 +674,7 @@ def render_perfil_sociodemografico(df_micro):
                 showlegend=True, legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"),
                 height=300, margin=dict(l=0, r=0, t=10, b=0)
             )
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, width='stretch')
         else:
             st.info("Variable Sitio de defunción no disponible.")
 
@@ -727,7 +727,7 @@ def render_factores_riesgo(df_panel):
             xaxis=dict(showgrid=False, title=""), yaxis=dict(showgrid=True, gridcolor='#D1CDC0'),
             height=350, margin=dict(l=0, r=0, t=10, b=0)
         )
-        st.plotly_chart(fig_corr, use_container_width=True)
+        st.plotly_chart(fig_corr, width='stretch')
 
     with col_b2:
         st.markdown("<p style='text-align: center; font-weight: bold; color: #2D2D2D; font-size: 0.9em;'>Evolución Nivel Riesgo IRCA</p>", unsafe_allow_html=True)
@@ -741,7 +741,7 @@ def render_factores_riesgo(df_panel):
             xaxis=dict(showgrid=False, title="", type='category'), yaxis=dict(showgrid=True, gridcolor='#D1CDC0'),
             height=350, margin=dict(l=0, r=0, t=10, b=0)
         )
-        st.plotly_chart(fig_r, use_container_width=True)
+        st.plotly_chart(fig_r, width='stretch')
 
     with col_b3:
         st.markdown("<p style='text-align: center; font-weight: bold; color: #2D2D2D; font-size: 0.9em;'>Importancia Relativa (SHAP)</p>", unsafe_allow_html=True)
@@ -758,7 +758,7 @@ def render_factores_riesgo(df_panel):
             xaxis=dict(showgrid=True, gridcolor='#D1CDC0'), yaxis=dict(showgrid=False, title=""),
             height=350, margin=dict(l=0, r=0, t=10, b=0)
         )
-        st.plotly_chart(fig_s, use_container_width=True)
+        st.plotly_chart(fig_s, width='stretch')
 
 def render_modelos_predictivos(): pass
 
